@@ -1,0 +1,120 @@
+#!/bin/bash
+
+root=$(whoami)
+if [[ $root == root ]] ;then
+true
+else
+echo "Please use root or sudo."
+sleep 2
+exit
+
+fi
+echo "Open the SSH service before you start!"
+sleep 4
+echo
+echo "Do you want to install the tools for the script?"
+read -p "here: " O
+
+if [[ $O == yes || $O == Yes ]] ;then 
+sudo apt install imagemagick -y 
+sudo apt install sshpass -y
+sudo apt install rar -y 
+else
+echo "Very well."
+fi
+echo "Hello, here you will need to insert the remote server details."
+echo "Insert the username."
+read -p "here: " USER
+echo "Insert the IP of the user."
+read -p "here: " IP
+echo "Insert the password of the user."
+read -p "here: " PASS
+
+echo 
+
+for  i in {1..4} ; do 
+
+echo "Victim pass = $PASS  Victim IP =  $IP"  > file$i 
+
+zip -X file5.zip file1 > /dev/null 2>&1
+
+zip -X file$i.zip file$i > /dev/null 2>&1
+
+rm file$i
+
+done
+
+sshpass  -p $PASS   ssh -o StrictHostKeyChecking=no  $USER@$IP  "touch .you_cant_see_me && echo 'Good job' > .you_cant_see_me"  > /dev/null 2>&1
+
+echo "Downloading the files...."
+
+sleep 2
+
+echo "There is a hash collision."
+echo
+echo "What are the names of the files? Insert one of them."
+sleep 2
+restart(){
+echo "Note: The user IP and the user password are in the file."
+sleep 2
+read -p "here: " H
+if [[ $H == file5.zip || $H == file1.zip ]] ; then 
+true
+else
+echo "Wrong answer."
+sleep 2
+restart 
+fi
+
+}
+
+restart
+echo "What are the 4 hex headers of a JPG file?"
+echo
+echo "Downloading the JPG."
+sleep 2
+convert -size 300x100 xc:white -gravity center -font Arial -pointsize 48 -draw "text 0,0 'im_agpg'" output_image.jpg > /dev/null 2>&1 
+restart_r() {
+echo "Carve the JPG file for the answer." 
+read -p "here: " B
+sleep 2
+if [[ $B == "ff d8 ff e0" ]] ; then
+echo "Correct! Now to get the username you will need to crack the RAR file."
+sleep 4
+
+convert -size 300x100 xc:white -gravity center -font Arial -pointsize 48 -draw "text 0,0 '$USER'" output_image.jpg  > /dev/null 2>&1 
+
+rar a -p"hola" rar_me output_image.jpg  > /dev/null 2>&1 
+
+restart_ssh() {
+echo "Now you need to SSH to the user!"
+echo
+echo "Remember that you have the password and the IP in the ZIP file!"
+echo
+echo "In the JPG file, you have the username!"
+echo
+echo "What is the content of the hidden file [ you_cant_see_me ]?"
+read -p "here: " A
+if [[ $A == "Good job" ]] ; then
+figlet "You are the best"
+
+else 
+echo "Wrong answer."
+restart_ssh
+fi
+}
+restart_ssh
+
+
+else 
+echo "Wrong answer."
+restart_r
+fi
+}
+restart_r
+             
+           
+rm -r output_image.jpg 
+rm -r file{1..5}.zip
+rm -r rar_me.rar
+sshpass  -p $PASS   ssh -o StrictHostKeyChecking=no  $USER@$IP  "rm .you_cant_see_me"  > /dev/null 2>&1
