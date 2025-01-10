@@ -53,19 +53,19 @@ searching_options(){
 echo
 echo -e ""${blue}"what would you like to look for "${reset}""
 echo -e "${red}" "
-[1] shows info about the pcap                     [11] Port-Based Threat Detection
+[1] shows info about the pcap                      [11] Port-Based Threat Detection
 
-[2] shows all the protocols that have been used   [12] potential Nmap scans 
+[2] shows all the protocols that have been used    [12] potential Nmap scans 
 
-[3] shows user agents                             [13] commands extraction
+[3] shows user agents                              [13] commands extraction
 
-[4] show domain names                             [14] extract OS (operating system)
- 
-[5] show http.host                                [15] responder detection
- 
-[6] show suspicious IPs                           [16] SSL decryption
+[4] show domain names                              [14] extract OS (operating system)
+                                                  
+[5] show http.host                                 [15] SSL decryption
 
-[7] show MAC and vendor                           [17] malware detection
+[6] show suspicious IPs                            [16] malware detection
+
+[7] show MAC and vendor               
 
 [8] extract credentials 
 
@@ -442,29 +442,27 @@ echo
 echo -e " "${blue}"
 extracting the suspicious ports "${reset}" "
 echo
-Ports=$(tshark -r "$FILE" -T "fields" -e"ip.src" -e  "tcp.srcport"  | sort -n | uniq  | sort -n   | egrep -w "1080|1433|1434|1521|1723|2049|2082|2083|3128|3306|3389|4444|5432|5900|5938|6379|8080|8443|8888|9200|10000|27017|3074|5060|5555|6667|6697|8000|8081|9100|9090|5985|5986|28017|6969|1337|12345|1111|2222|3333|5555|6666|7777|9999|3131|5353|7000|34567|8181|8008|27015|(4915[2-9]|491[6-9][0-9]|49[2-9][0-9]{2}|5[0-5][0-9]{3}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])" | grep -vE "^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|127\.|169\.254\.|224\.|240\.)") 
+Ports=$(tshark -r "$FILE" -T "fields" -e"ip.dst" -e  "tcp.srcport"  | sort -n | uniq  | sort -n   | egrep -w "1080|1433|1434|1521|1723|2049|2082|2083|3128|3306|3389|4444|5432|5900|5938|6379|8080|8443|8888|9200|10000|27017|3074|5060|5555|6667|6697|8000|8081|9100|9090|5985|5986|28017|6969|1337|12345|1111|2222|3333|5555|6666|7777|9999|3131|5353|7000|34567|8181|8008|27015|(4915[2-9]|491[6-9][0-9]|49[2-9][0-9]{2}|5[0-5][0-9]{3}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])" | grep -vE "^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|127\.|169\.254\.|224\.|240\.)" | awk '{print "Source IP:" ,$1 " Suspicious Port:", $2}') 
 if [[ -z $Ports ]];then
 echo -e " "${red}" 
 no suspicious ports were found "${reset}" "
 echo
 restart_check
 else 
-echo -e ""${white}
-tshark -r "$FILE" -T "fields" -e"ip.src" -e  "tcp.srcport"  | sort -n | uniq  | sort -n   | egrep -w "1080|1433|1434|1521|1723|2049|2082|2083|3128|3306|3389|4444|5432|5900|5938|6379|8080|8443|8888|9200|10000|27017|3074|5060|5555|6667|6697|8000|8081|9100|9090|5985|5986|28017|6969|1337|12345|1111|2222|3333|5555|6666|7777|9999|3131|5353|7000|34567|8181|8008|27015|(4915[2-9]|491[6-9][0-9]|49[2-9][0-9]{2}|5[0-5][0-9]{3}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])" | grep -vE "^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|127\.|169\.254\.|224\.|240\.)" | awk '{print "Source IP:" ,$1 " Suspicious Port:", $2}'
-${reset}" " 
+echo "$Ports"
 fi
 continue_check
 restart_check
 ;;
 2)
-brute=$(tshark -r  "$FILE" -T fields -e ip.src -e tcp.dstport |grep -vE "^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|127\.|169\.254\.|224\.|240\.)" | egrep -w "22|21|25|3389|23" | sort | uniq -c | sort -n | awk '{print "Attempts:",$1 " Source IP:", $2, "Port:", $3}')
+brute=$(tshark -r  "$FILE" -T fields -e ip.dst -e tcp.dstport |grep -vE "^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|127\.|169\.254\.|224\.|240\.)" | egrep -w "22|21|25|3389|23" | sort | uniq -c | sort -n | awk '{print "Attempts:",$1 " Source IP:", $2, "Port:", $3}')
 if [[ -z $brute ]];then
 echo -e " "${red}"  
 no brute force detected "${reset}" "
 restart_check
 else 
 echo -e ""${white}
-tshark -r  "$FILE" -T fields -e ip.src -e tcp.dstport |grep -vE "^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|127\.|169\.254\.|224\.|240\.)" | egrep -w "22|21|25|3389|23" | sort | uniq -c | sort -n | awk '{print "Attempts:",$1 " Source IP:", $2, "Port:", $3}'
+echo "$brute"
 ${reset}" "
 continue_check
 restart_check
@@ -575,53 +573,6 @@ restart_check
 esac
 ;;
 15)
-echo -e "${blue}" 
-set -e
-trap 'rm -f ~/Desktop/NTLM/hash/*.lst $HOME/NTLM/hash/crackme_*.log' EXIT
-
-HOME=$(pwd)
-n=100
-mkdir -p "~/Desktop/NTLM/hash"
-cd "~/Desktop/NTLM/hash"
-
-tshark -r "~/Desktop/$FILE" -Y 'ntlmssp' -T fields -e ntlmssp.ntlmserverchallenge -e tcp.ack_raw \
-    | awk NF | awk '{print $1"#"$2}' | awk -F'#' '{print $1"::"$2}' | awk 'length >= 16' \
-    > "a.lst"
-
-if [ -s "a.lst" ]; then
-    while read -r i; do
-        s=$(echo "$i" | awk -F:: '{print $2}')
-        c=$(echo "$i" | awk -F:: '{print $1}')
-
-        tshark -r "~/Desktop/$FILE" -Y "tcp.seq_raw == $s && ntlmssp" -T fields \
-            -e ntlmssp.auth.username -e ntlmssp.auth.domain -e ntlmssp.ntlmv2_response.ntproofstr \
-            -e ntlmssp.ntlmv2_response \
-            | awk NF | awk -F'\t' '{print $1 "::" $2 ":L:" $3 ":" $4}' \
-            > "b$n.lst"
-
-        sed "s/:L:/:$c:/g" "b$n.lst" > "c$n.lst"
-        r=$(awk -F: '{print $5}' "c$n.lst")
-        sed -e "s/$r/L:/g" -e 's/:L::L:/:L:/g' "c$n.lst" > "d$n.lst"
-        sed "s/:L:/:$r:/g" "d$n.lst" | rev | cut -c3- | rev > "crackme_$n.log"
-
-        ((n++))
-    done < "a.lst"
-
-    for fcr in "~/Desktop/NTLM/hash/crackme_*.log"; do
-        if [ -s "$fcr" ]; then
-            cat "$fcr"
-        else
-            echo "An error occurred while processing: $fcr"
-        fi
-    done
-else
-    echo "No NTLM data was found in the pcap file."
-fi
-restart_check
-
-${reset}""
-;;
-16)
 echo 
 echo -e ""${blue}"
 if you don't remember the SSL file press 1 "${reset}""
@@ -658,7 +609,7 @@ continue_check
 restart_check
 fi
 ;;
-17)
+16)
 echo
 echo -e ""${blue}"
 what name would you like to give the file"${reset}""
@@ -856,3 +807,5 @@ file_existence_check
 # This script is the original work of Nir Arazi.
 # Redistribution, modification, or duplication of this script without explicit written permission is strictly prohibited.
 # For educational and ethical use only. Ensure compliance with all applicable laws.
+
+
