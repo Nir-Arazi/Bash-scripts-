@@ -65,7 +65,7 @@ echo -e "${red}" "
 
 [6] show suspicious IPs                            [16] malware detection
 
-[7] show MAC and vendor               
+[7] show MAC and vendor                            [17] Show IPv4 conversations
 
 [8] extract credentials 
 
@@ -658,7 +658,7 @@ HTTPS=$(curl -s --request POST \
   --url https://www.virustotal.com/api/v3/files \
   --header "x-apikey:$API" \
   --form file=@$i | awk -F'"' '{print $16}')
-  
+
 curl -s --request GET \
  --url $HTTPS \
  --header "x-apikey:$API" | jq >> ~/Desktop/virus_total_output
@@ -731,7 +731,7 @@ HTTPS=$(curl -s --request POST \
   --url https://www.virustotal.com/api/v3/files \
   --header "x-apikey:$API" \
   --form file=@$i | awk -F'"' '{print $16}' )
-  
+
 curl -s --request GET \
  --url $HTTPS \
  --header "x-apikey:$API" | jq >> ~/Desktop/$VT
@@ -744,6 +744,11 @@ files have been saved to $VT"${reset}""
 continue_check
 restart_check
 esac
+;;
+17)
+echo -e " "${white}
+tshark -r net.pcap -Y "" -z conv,ip -q
+ ${reset}" "
 ;;
 *)
 echo
@@ -765,7 +770,7 @@ _________         .    .
       \\\_   ===    \\.  |
       / /\\_   \\ /      |
       |/   \\_  \\|      /
-             \\________/"
+             \\/"
 
 figlet " Welcome to Pcap_Crawler "
 echo -e ""${reset}" "
@@ -807,5 +812,3 @@ file_existence_check
 # This script is the original work of Nir Arazi.
 # Redistribution, modification, or duplication of this script without explicit written permission is strictly prohibited.
 # For educational and ethical use only. Ensure compliance with all applicable laws.
-
-
