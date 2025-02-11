@@ -1,4 +1,4 @@
-#!/bin/bash
+ #!/bin/bash
 
 if ! command -v geoiplookup &> /dev/null; then
     echo "Please install geoiplookup"
