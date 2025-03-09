@@ -2,27 +2,33 @@
 
 if ! command -v geoiplookup &> /dev/null; then
     echo "Please install geoiplookup"
-fi
+    exit
+	fi
 
-if ! command -v jq &> /dev/null; then
-    echo "Please install jq"
-fi
+	if ! command -v jq &> /dev/null; then
+		echo "Please install jq"
+		exit
+	fi
 
-if ! command -v foremost &> /dev/null; then
-    echo "Please install foremost"
-fi
+		if ! command -v foremost &> /dev/null; then
+			echo "Please install foremost"
+			exit
+		fi
 
-if ! command -v figlet &> /dev/null; then
-    echo "Please install figlet"
-fi
+			if ! command -v figlet &> /dev/null; then
+				echo "Please install figlet"
+				exit
+			fi
 
-if ! command -v curl &> /dev/null; then
-    echo "Please install curl"
-fi
+				if ! command -v curl &> /dev/null; then
+					echo "Please install curl"
+					exit
+				fi
 
-if ! command -v tshark &> /dev/null; then
-    echo "Please install tshark"
-fi
+					if ! command -v tshark &> /dev/null; then
+						echo "Please install tshark"
+						exit
+					fi
 
 white='\033[1;97m'
 reset='\033[0m' 
@@ -781,12 +787,22 @@ echo -e " "${blue}"
 if you don't remember the pcap name, please insert 1 "${reset}" "
 read -p "[?]" pcap_search
 if [[ "$pcap_search" == "1" ]] ; then 
+file_chack=$(ls | grep pcap)
+if [[ -z $file_chack ]] ; then
+echo -e ""${red}"
+echo "no pcap files were fund"
+"${reset}""
+exit
+else
 echo -e ""${white}
 ls | grep pcap 
 echo -e ""${reset}"" 
+fi
 else
 clear
 fi
+
+
 
 file_existence_check() {
 echo
@@ -812,3 +828,4 @@ file_existence_check
 # This script is the original work of Nir Arazi.
 # Redistribution, modification, or duplication of this script without explicit written permission is strictly prohibited.
 # For educational and ethical use only. Ensure compliance with all applicable laws.
+
