@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if ! command -v geoiplookup &> /dev/null; then
-    echo "Please install geoiplookup"
+    echo "Please install geoip-bin"
     exit
 	fi
 
@@ -828,4 +828,3 @@ file_existence_check
 # This script is the original work of Nir Arazi.
 # Redistribution, modification, or duplication of this script without explicit written permission is strictly prohibited.
 # For educational and ethical use only. Ensure compliance with all applicable laws.
-
