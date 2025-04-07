@@ -3,32 +3,32 @@
 if ! command -v geoiplookup &> /dev/null; then
     echo "Please install geoip-bin"
     exit
-	fi
+        fi
 
-	if ! command -v jq &> /dev/null; then
-		echo "Please install jq"
-		exit
-	fi
+        if ! command -v jq &> /dev/null; then
+                echo "Please install jq"
+                exit
+        fi
 
-		if ! command -v foremost &> /dev/null; then
-			echo "Please install foremost"
-			exit
-		fi
+                if ! command -v foremost &> /dev/null; then
+                        echo "Please install foremost"
+                        exit
+                fi
 
-			if ! command -v figlet &> /dev/null; then
-				echo "Please install figlet"
-				exit
-			fi
+                        if ! command -v figlet &> /dev/null; then
+                                echo "Please install figlet"
+                                exit
+                        fi
 
-				if ! command -v curl &> /dev/null; then
-					echo "Please install curl"
-					exit
-				fi
+                                if ! command -v curl &> /dev/null; then
+                                        echo "Please install curl"
+                                        exit
+                                fi
 
-					if ! command -v tshark &> /dev/null; then
-						echo "Please install tshark"
-						exit
-					fi
+                                        if ! command -v tshark &> /dev/null; then
+                                                echo "Please install tshark"
+                                                exit
+                                        fi
 
 white='\033[1;97m'
 reset='\033[0m' 
@@ -487,7 +487,7 @@ echo -e "  "${red}"
 read -p "[?]" ip
 case $ip in
 1)
-ips=$(tshark -r  "$FILE" -Y "frame.len" -T fields -e "ip.src" -e "frame.len" | awk '$2 == 44 || $2 == 8 || $2 == 60 || $2 == 28' | grep -E "^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.)" | sort | uniq -c | sort -n | awk '{ print "Number_of_Packets:" $1 "<----->" "Packet_Size:" $2 }' | tail -5 )
+ips=$(tshark -r  "$FILE" -Y "frame.len" -T fields -e "ip.src" -e "frame.len" | awk '$2 == 44 || $2 == 8 || $2 == 60 || $2 == 28' | grep -E "^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.)" | sort | uniq -c | sort -n | awk '{ print "Number_of_Packets:" $1 "<----->" "IP:" $2 }' | tail -5 )
 if [[ -z $ips ]];then
 echo -e ""${red}" Nmap wasn't detected "${reset}" "
 restart_check
@@ -498,14 +498,14 @@ restart_check
 fi
 ;;
 2)
-Ips=$(tshark -r  "$FILE" -Y "frame.len" -T fields -e "ip.src" -e "frame.len" | awk '$2 == 44 || $2 == 8 || $2 == 60 || $2 == 28' | grep -vE "^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|127\.|169\.254\.|224\.|240\.)" | sort | uniq -c | sort -n | awk '{ print "Number_of_Packets:" $1 "<----->" "Packet_Size:" $2 }' | tail -5)
+Ips=$(tshark -r  "$FILE" -Y "frame.len" -T fields -e "ip.src" -e "frame.len" | awk '$2 == 44 || $2 == 8 || $2 == 60 || $2 == 28' | grep -vE "^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|127\.|169\.254\.|224\.|240\.)" | sort | uniq -c | sort -n | awk '{ print "Number_of_Packets:" $1 "<----->" "IP:" $2 }' | tail -5)
 if [[ -z $Ips ]];then
 echo -e "  "${red}" 
 Nmap wasn't detected "${reset}" "
 restart_check
 else 
 echo -e ""${white}
-tshark -r  "$FILE" -Y "frame.len" -T fields -e "ip.src" -e "frame.len" | awk '$2 == 44 || $2 == 8 || $2 == 60 || $2 == 28' | grep -vE "^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|127\.|169\.254\.|224\.|240\.)" | sort | uniq -c | sort -n | awk '{ print "Number_of_Packets:" $1 "<----->" "Packet_Size:" $2 }' | tail -5 
+tshark -r  "$FILE" -Y "frame.len" -T fields -e "ip.src" -e "frame.len" | awk '$2 == 44 || $2 == 8 || $2 == 60 || $2 == 28' | grep -vE "^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|127\.|169\.254\.|224\.|240\.)" | sort | uniq -c | sort -n | awk '{ print "Number_of_Packets:" $1 "<----->" "IP:" $2 }' | tail -5 
 ${reset}" "
 continue_check
 restart_check
@@ -657,103 +657,152 @@ echo -e ""${blue}"
 please insert your API key"${reset}"" 
 read -p "[?]" API
 echo 
-cd $file_name
-for i in $(ls)
-do
-HTTPS=$(curl -s --request POST \
-  --url https://www.virustotal.com/api/v3/files \
-  --header "x-apikey:$API" \
-  --form file=@$i | awk -F'"' '{print $16}')
+cd "$file_name" || exit 1
 
-curl -s --request GET \
- --url $HTTPS \
- --header "x-apikey:$API" | jq >> ~/Desktop/virus_total_output
- sleep 40
+output_file=~/Desktop/virus_total_output
+> "$output_file"  # clear output file
+
+for i in *.exe; do
+    [ -e "$i" ] || continue  # skip if no .exe files
+
+    echo -e "${blue}Uploading $i to VirusTotal...${reset}"
+
+    # Upload and get analysis link
+    HTTPS=$(curl -s --request POST \
+        --url https://www.virustotal.com/api/v3/files \
+        --header "x-apikey:$API" \
+        --form "file=@$i" | jq -r '.data.links.self')
+
+    echo -e "${blue}Waiting for VirusTotal analysis...${reset}"
+    sleep 40
+
+    # Retrieve the report
+    curl -s --request GET \
+        --url "$HTTPS" \
+        --header "x-apikey:$API" | jq >> "$output_file"
+
+    echo -e "${green}Finished analyzing $i ✔${reset}\n"
 done
-echo -e ""${blue}"
-output extracted to virus_total_output
-"${reset}"" 
+
+echo -e "${blue}Output extracted to: virus_total_output${reset}"
+
 continue_check
 restart_check
+
 ;;
 2)
-if [[ -z $(ls  $file_name ) ]]; then
-echo -e ""${red}"
-no files were extracted"${reset}"" 
-restart_check
+if [[ -z "$(ls -A "$file_name" 2>/dev/null)" ]]; then
+    echo -e "${red}No files were extracted${reset}"
+    restart_check
 fi
+
 echo ""
-echo -e ""${blue}" 
-where would you like the carved files?"${reset}"" 
-read -p "[?]" carved 
-echo -e ""${blue}"
-carving the files.."${reset}"" 
-cd $file_name
+echo -e "${blue}Where would you like the carved files?${reset}"
+read -p "[?] " carved
+
+echo -e "${blue}Carving the files...${reset}"
+
+cd "$file_name" || exit 1
+
+# Carve only .exe files from all inputs
 for i in *; do
-foremost -i $i exe -o malware_$i
+    [ -f "$i" ] || continue
+    foremost -i "$i" -t exe -o "malware_$i"
 done
-mkdir $carved
-mv malware* ./$carved
-mv ~/Desktop/$file_name/$carved ~/Desktop
-echo -e ""${blue}"
-everything has been extracted to $carved"${reset}"" 
-cd ~/Desktop
+
+# Organize results
+mkdir -p "$carved"
+mv malware_* "./$carved"
+
+# Move results to Desktop
+mv "$carved" ~/Desktop/
+
+echo -e "${blue}Everything has been extracted to ~/Desktop/$carved${reset}"
+
+# Optional: remove the original extraction folder
+cd ~/Desktop || exit
 sleep 4
-rm -r $file_name
+rm -rf "$file_name"
 continue_check
 restart_check
 ;;
 3)
-if [[ -z $(ls  $file_name ) ]]; then
-echo -e ""${red}"
-no files were extracted"${reset}"" 
-restart_check
+if [[ -z $(ls "$file_name") ]]; then
+    echo -e "${red}No files were extracted.${reset}"
+    restart_check
 fi
-echo
-echo -e ""${blue}"
-where would you like to save all the VirusTotal output"${reset}"" 
-read -p "[?]" VT 
-cd $file_name
-for i in *; do
-foremost -i $i exe -o malware_$i
-done
-mkdir db
-mv malware* ./db
-cd db
-mkdir exe_files
-for i in $(ls | grep -R "exe:= 1" | awk -F '/' '{print $1}')
-do
-mv $i/exe/* ./exe_files
-done
-cd ~/Desktop/$file_name/db/exe_files 
-echo 
-echo -e ""${blue}"
-please insert your API key"${reset}"" 
-read -p "[?]" API
-echo 
-for i in *
-do
-HTTPS=$(curl -s --request POST \
-  --url https://www.virustotal.com/api/v3/files \
-  --header "x-apikey:$API" \
-  --form file=@$i | awk -F'"' '{print $16}' )
 
-curl -s --request GET \
- --url $HTTPS \
- --header "x-apikey:$API" | jq >> ~/Desktop/$VT
- sleep 60
+echo
+echo -e "${blue}Where would you like to save all the VirusTotal output?${reset}"
+read -p "[?] " VT
+
+cd "$file_name" || exit 1
+
+# Carve only .exe files from the content
+for i in *; do
+    [ -f "$i" ] || continue
+    foremost -i "$i" -t exe -o "malware_$i"
 done
-echo 
-cd ~/Desktop
-echo -e ""${blue}"
-files have been saved to $VT"${reset}"" 
+
+# Organize folders
+mkdir -p db
+mv malware_* ./db
+cd db
+
+# Gather all .exe files into one directory
+mkdir -p exe_files
+
+# Move .exe files if present
+for i in malware_*/exe; do
+    [ -d "$i" ] || continue
+    find "$i" -type f -name "*.exe" -exec mv {} ./exe_files/ \;
+done
+
+cd exe_files || exit 1
+
+# Ask for API Key
+echo
+echo -e "${blue}Please insert your VirusTotal API key:${reset}"
+read -p "[?] " API
+
+echo
+output_path=~/Desktop/"$VT"
+> "$output_path"  # Clear previous output
+
+# Submit each .exe file to VirusTotal
+for i in *; do
+    [ -f "$i" ] || continue
+
+    echo -e "${blue}Uploading $i to VirusTotal...${reset}"
+    HTTPS=$(curl -s --request POST \
+        --url https://www.virustotal.com/api/v3/files \
+        --header "x-apikey:$API" \
+        --form "file=@$i" | jq -r '.data.links.self')
+
+    if [[ -z "$HTTPS" || "$HTTPS" == "null" ]]; then
+        echo -e "${red}Failed to upload $i. Skipping...${reset}"
+        continue
+    fi
+
+    echo -e "${blue}Waiting for analysis...${reset}"
+    sleep 60
+
+    curl -s --request GET \
+        --url "$HTTPS" \
+        --header "x-apikey:$API" | jq >> "$output_path"
+
+    echo -e "${green}Finished scanning $i ✔${reset}\n"
+done
+
+echo
+echo -e "${blue}Files have been saved to: $output_path${reset}"
 continue_check
 restart_check
 esac
 ;;
 17)
 echo -e " "${white}
-tshark -r net.pcap -Y "" -z conv,ip -q
+tshark -r $FILE -Y "" -z conv,ip -q
  ${reset}" "
 ;;
 *)
